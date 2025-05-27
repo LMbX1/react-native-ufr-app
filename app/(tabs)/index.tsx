@@ -1,3 +1,4 @@
+// my-app/app/(tabs)/index.tsx
 import React, { useState } from 'react';
 import {
   View,
@@ -5,36 +6,65 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  TextInput,
-  Modal,
+  Image,
   SafeAreaView,
   StatusBar,
   Alert,
   Dimensions,
 } from 'react-native';
 
+// Importe o componente de chat separado
+import ChatModal from '../components/ChatModal';
+// Importe o componente de login separado
+import LoginScreen from '../auth/login';
+
 const { width } = Dimensions.get('window');
 
+// Definições de tipos (você pode movê-las para um arquivo types.ts separado)
+interface Notification { id: number; type: 'alert' | 'info' | 'emergency'; message: string; time: string; }
+interface RiskArea { name: string; risk: 'alto' | 'médio'; incidents: number; }
+
 const UFRSecurityApp = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [activeTab, setActiveTab] = useState('home');
   const [emergencyActive, setEmergencyActive] = useState(false);
-  const [chatOpen, setChatOpen] = useState(false);
-  const [chatMessages, setChatMessages] = useState([
-    { id: 1, sender: 'security', message: 'Olá! Como podemos ajudá-lo?', time: '14:30' }
-  ]);
-  const [newMessage, setNewMessage] = useState('');
-  const [notifications, setNotifications] = useState([
+  const [chatOpen, setChatOpen] = useState(false); // Estado para controlar a visibilidade do ChatModal
+  const [notifications, setNotifications] = useState<Notification[]>([
     { id: 1, type: 'alert', message: 'Incidente reportado próximo ao Bloco A - Área isolada temporariamente', time: '2h atrás' },
     { id: 2, type: 'info', message: 'Manutenção da iluminação no estacionamento concluída', time: '1 dia atrás' }
   ]);
 
-  const riskAreas = [
+  const riskAreas: RiskArea[] = [
     { name: 'Estacionamento', risk: 'alto', incidents: 5 },
     { name: 'Bloco A - Saída Lateral', risk: 'alto', incidents: 3 },
     { name: 'Centro de Vivências', risk: 'médio', incidents: 2 },
     { name: 'Área do NEATI', risk: 'médio', incidents: 2 },
     { name: 'Blocos E e F', risk: 'médio', incidents: 1 }
   ];
+
+  // Callback para quando o login for bem-sucedido na LoginScreen
+  const handleLoginSuccess = () => {
+    setIsLoggedIn(true);
+    // Em um app real, aqui você salvaria tokens de autenticação, informações do usuário, etc.
+  };
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Sair',
+      'Tem certeza que deseja sair do aplicativo?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Sair',
+          style: 'destructive',
+          onPress: () => {
+            setIsLoggedIn(false);
+            setActiveTab('home'); // Redireciona para a tela inicial ou login após sair
+          }
+        }
+      ]
+    );
+  };
 
   const handleEmergencyPress = () => {
     setEmergencyActive(true);
@@ -43,7 +73,7 @@ const UFRSecurityApp = () => {
       'A segurança foi notificada e está a caminho da sua localização.',
       [{ text: 'OK' }]
     );
-    
+
     setTimeout(() => {
       setNotifications(prev => [{
         id: Date.now(),
@@ -55,27 +85,7 @@ const UFRSecurityApp = () => {
     }, 3000);
   };
 
-  const sendMessage = () => {
-    if (newMessage.trim()) {
-      setChatMessages(prev => [...prev, {
-        id: Date.now(),
-        sender: 'user',
-        message: newMessage,
-        time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-      }]);
-      setNewMessage('');
-      
-      setTimeout(() => {
-        setChatMessages(prev => [...prev, {
-          id: Date.now(),
-          sender: 'security',
-          message: 'Recebido! Estamos verificando a situação.',
-          time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-        }]);
-      }, 2000);
-    }
-  };
-
+  // --- Componentes das Abas (mantidos aqui para simplicidade, mas idealmente separados) ---
   const HomeTab = () => (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       <View style={styles.header}>
@@ -103,14 +113,14 @@ const UFRSecurityApp = () => {
 
       {/* Ações Rápidas */}
       <View style={styles.actionsContainer}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.actionButton, { backgroundColor: '#3B82F6' }]}
-          onPress={() => setChatOpen(true)}
+          onPress={() => setChatOpen(true)} // Abre o modal de chat
         >
           <Text style={styles.actionIcon}>💬</Text>
           <Text style={styles.actionText}>Chat Segurança</Text>
         </TouchableOpacity>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.actionButton, { backgroundColor: '#F97316' }]}
           onPress={() => setActiveTab('map')}
         >
@@ -134,12 +144,12 @@ const UFRSecurityApp = () => {
   const MapTab = () => (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       <Text style={styles.sectionTitle}>Mapa de Áreas de Risco</Text>
-      
+
       {/* Mapa Simulado */}
       <View style={styles.mapContainer}>
         <Text style={styles.mapIcon}>🗺️</Text>
         <Text style={styles.mapText}>Campus UFR - Vista Geral</Text>
-        
+
         {/* Pontos de Risco Simulados */}
         <View style={[styles.riskPoint, { top: 20, left: 20, backgroundColor: '#EF4444' }]} />
         <View style={[styles.riskPoint, { top: 40, right: 30, backgroundColor: '#F59E0B' }]} />
@@ -184,26 +194,26 @@ const UFRSecurityApp = () => {
   const NotificationsTab = () => (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       <Text style={styles.sectionTitle}>Notificações</Text>
-      
+
       {notifications.map(notification => (
         <View key={notification.id} style={[
           styles.notificationItem,
           {
-            backgroundColor: notification.type === 'emergency' 
-              ? '#FEF2F2' 
-              : notification.type === 'alert' 
-                ? '#FFFBEB' 
+            backgroundColor: notification.type === 'emergency'
+              ? '#FEF2F2'
+              : notification.type === 'alert'
+                ? '#FFFBEB'
                 : '#EFF6FF',
-            borderLeftColor: notification.type === 'emergency' 
-              ? '#EF4444' 
-              : notification.type === 'alert' 
-                ? '#F59E0B' 
+            borderLeftColor: notification.type === 'emergency'
+              ? '#EF4444'
+              : notification.type === 'alert'
+                ? '#F59E0B'
                 : '#3B82F6'
           }
         ]}>
           <View style={styles.notificationHeader}>
             <Text style={styles.notificationIcon}>
-              {notification.type === 'emergency' ? '🚨' : 
+              {notification.type === 'emergency' ? '🚨' :
                notification.type === 'alert' ? '⚠️' : '🔔'}
             </Text>
             <View style={styles.notificationContent}>
@@ -219,7 +229,7 @@ const UFRSecurityApp = () => {
   const ProfileTab = () => (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       <Text style={styles.sectionTitle}>Perfil</Text>
-      
+
       <View style={styles.profileContainer}>
         <View style={styles.profileHeader}>
           <View style={styles.profileAvatar}>
@@ -230,11 +240,11 @@ const UFRSecurityApp = () => {
             <Text style={styles.profileRole}>Estudante</Text>
           </View>
         </View>
-        
+
         <View style={styles.profileInfo}>
           <View style={styles.profileInfoItem}>
             <Text style={styles.profileInfoLabel}>RGA</Text>
-            <Text style={styles.profileInfoValue}>2024********</Text>
+            <Text style={styles.profileInfoValue}>20241234 (Exemplo)</Text>
           </View>
           <View style={styles.profileInfoItem}>
             <Text style={styles.profileInfoLabel}>Período</Text>
@@ -256,82 +266,30 @@ const UFRSecurityApp = () => {
           <Text style={styles.profileActionIcon}>📞</Text>
           <Text style={styles.profileActionText}>Contatos de Emergência</Text>
         </TouchableOpacity>
+        <TouchableOpacity style={styles.profileAction} onPress={handleLogout}>
+          <Text style={styles.profileActionIcon}>🚪</Text>
+          <Text style={styles.profileActionText}>Sair do Aplicativo</Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );
+  // --- Fim dos Componentes das Abas ---
 
-  const ChatModal = () => (
-    <Modal
-      visible={chatOpen}
-      animationType="slide"
-      presentationStyle="pageSheet"
-    >
-      <SafeAreaView style={styles.chatContainer}>
-        <View style={styles.chatHeader}>
-          <Text style={styles.chatTitle}>Chat com Segurança</Text>
-          <TouchableOpacity 
-            onPress={() => setChatOpen(false)}
-            style={styles.chatCloseButton}
-          >
-            <Text style={styles.chatCloseText}>✕</Text>
-          </TouchableOpacity>
-        </View>
-        
-        <ScrollView style={styles.chatMessages} contentContainerStyle={styles.chatMessagesContent}>
-          {chatMessages.map(message => (
-            <View key={message.id} style={[
-              styles.messageContainer,
-              message.sender === 'user' ? styles.userMessage : styles.securityMessage
-            ]}>
-              <View style={[
-                styles.messageBubble,
-                message.sender === 'user' ? styles.userBubble : styles.securityBubble
-              ]}>
-                <Text style={[
-                  styles.messageText,
-                  message.sender === 'user' ? styles.userMessageText : styles.securityMessageText
-                ]}>
-                  {message.message}
-                </Text>
-                <Text style={[
-                  styles.messageTime,
-                  message.sender === 'user' ? styles.userMessageTime : styles.securityMessageTime
-                ]}>
-                  {message.time}
-                </Text>
-              </View>
-            </View>
-          ))}
-        </ScrollView>
-        
-        <View style={styles.chatInput}>
-          <TextInput
-            style={styles.chatTextInput}
-            value={newMessage}
-            onChangeText={setNewMessage}
-            placeholder="Digite sua mensagem..."
-            multiline
-          />
-          <TouchableOpacity
-            style={styles.chatSendButton}
-            onPress={sendMessage}
-          >
-            <Text style={styles.chatSendText}>➤</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    </Modal>
-  );
+  // Se não estiver logado, mostra a tela de login
+  if (!isLoggedIn) {
+    return <LoginScreen onLoginSuccess={handleLoginSuccess} />;
+  }
 
+  // Se estiver logado, mostra o app principal
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor="#1E40AF" />
-      
-      {/* Header */}
+
+      {/* Header do App */}
       <View style={styles.appHeader}>
         <View style={styles.appHeaderContent}>
           <View style={styles.appHeaderLeft}>
-            <Text style={styles.appHeaderIcon}>🛡️</Text>
+            <Image source={require('../../assets/images/ufr-logo.png')} style={styles.appHeaderImage} />
             <View>
               <Text style={styles.appHeaderTitle}>UFR Security</Text>
               <Text style={styles.appHeaderSubtitle}>Campus Seguro</Text>
@@ -344,7 +302,7 @@ const UFRSecurityApp = () => {
         </View>
       </View>
 
-      {/* Content */}
+      {/* Conteúdo Principal (abas) */}
       <View style={styles.content}>
         {activeTab === 'home' && <HomeTab />}
         {activeTab === 'map' && <MapTab />}
@@ -352,7 +310,7 @@ const UFRSecurityApp = () => {
         {activeTab === 'profile' && <ProfileTab />}
       </View>
 
-      {/* Bottom Navigation */}
+      {/* Navegação Inferior (Bottom Navigation) */}
       <View style={styles.bottomNav}>
         {[
           { id: 'home', icon: '🏠', label: 'Início' },
@@ -381,20 +339,41 @@ const UFRSecurityApp = () => {
         ))}
       </View>
 
-      <ChatModal />
+      {/* Renderiza o ChatModal como um componente separado */}
+      <ChatModal
+        visible={chatOpen}
+        onClose={() => setChatOpen(false)}
+        initialMessages={[{ id: 1, sender: 'security', message: 'Olá! Como podemos ajudá-lo?', time: '14:30' }]}
+      />
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  // Estilos do LoginScreen DEVE ser removido daqui ou importado se desejar ter styles em um arquivo separado
+  // Como o LoginScreen é um componente separado, ele deve gerenciar seus próprios estilos.
+  // REMOVA OS ESTILOS DO LOGINSCREEN DAQUI:
+  /*
+  loginContainer: { ... },
+  loginKeyboardView: { ... },
+  ...
+  helpLinkText: { ... },
+  */
+
+  // Estilos existentes do app (mantidos aqui)
   safeArea: {
     flex: 1,
     backgroundColor: '#F9FAFB',
   },
   appHeader: {
-    backgroundColor: '#1E40AF',
+    backgroundColor: '#ffffff',
     paddingHorizontal: 16,
     paddingVertical: 12,
+  },
+  appHeaderImage: {
+    width: 30,
+    height: 30,
+    marginRight: 10,
   },
   appHeaderContent: {
     flexDirection: 'row',
@@ -412,11 +391,11 @@ const styles = StyleSheet.create({
   appHeaderTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: 'white',
+    color: 'blue',
   },
   appHeaderSubtitle: {
     fontSize: 12,
-    color: '#93C5FD',
+    color: 'blue',
   },
   appHeaderRight: {
     flexDirection: 'row',
@@ -431,7 +410,7 @@ const styles = StyleSheet.create({
   },
   onlineText: {
     fontSize: 12,
-    color: 'white',
+    color: 'black',
   },
   content: {
     flex: 1,
@@ -765,104 +744,13 @@ const styles = StyleSheet.create({
     color: '#3B82F6',
     fontWeight: '600',
   },
-  chatContainer: {
-    flex: 1,
-    backgroundColor: 'white',
-  },
-  chatHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-  chatTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1F2937',
-  },
-  chatCloseButton: {
-    padding: 8,
-  },
-  chatCloseText: {
-    fontSize: 20,
-    color: '#6B7280',
-  },
-  chatMessages: {
-    flex: 1,
-  },
-  chatMessagesContent: {
-    padding: 16,
-  },
-  messageContainer: {
-    marginBottom: 16,
-  },
-  userMessage: {
-    alignItems: 'flex-end',
-  },
-  securityMessage: {
-    alignItems: 'flex-start',
-  },
-  messageBubble: {
-    maxWidth: '80%',
-    padding: 12,
-    borderRadius: 12,
-  },
-  userBubble: {
-    backgroundColor: '#3B82F6',
-  },
-  securityBubble: {
-    backgroundColor: '#F3F4F6',
-  },
-  messageText: {
-    fontSize: 14,
-    marginBottom: 4,
-  },
-  userMessageText: {
-    color: 'white',
-  },
-  securityMessageText: {
-    color: '#1F2937',
-  },
-  messageTime: {
-    fontSize: 12,
-  },
-  userMessageTime: {
-    color: '#DBEAFE',
-  },
-  securityMessageTime: {
-    color: '#6B7280',
-  },
-  chatInput: {
-    flexDirection: 'row',
-    padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-    alignItems: 'flex-end',
-  },
-  chatTextInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: '#D1D5DB',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    marginRight: 8,
-    maxHeight: 100,
-  },
-  chatSendButton: {
-    backgroundColor: '#3B82F6',
-    padding: 12,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  chatSendText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
+  // REMOVA ESTES ESTILOS DE CHAT TAMBÉM, pois eles agora pertencem ao ChatModal.tsx
+  /*
+  chatContainer: { ... },
+  chatHeader: { ... },
+  ...
+  chatSendText: { ... },
+  */
 });
 
 export default UFRSecurityApp;
