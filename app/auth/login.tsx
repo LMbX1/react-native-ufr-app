@@ -162,7 +162,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
     setTimeout(() => {
       setLoginLoading(false);
       if (loginData.rga === '20241234' && loginData.password === '123456') {
-        Alert.alert('Sucesso', 'Login realizado com sucesso!');
+      //  Alert.alert('Sucesso', 'Login realizado com sucesso!');
         onLoginSuccess(); // Chama o callback para indicar sucesso
       } else {
         Alert.alert('Erro', 'RGA ou senha inválidos');

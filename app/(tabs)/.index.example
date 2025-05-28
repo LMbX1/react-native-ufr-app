@@ -12,18 +12,17 @@ import {
   Alert,
   Dimensions,
 } from 'react-native';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 
 // Importe o componente de chat separado
 import ChatModal from '../components/ChatModal';
 // Importe o componente de login separado
 import LoginScreen from '../auth/login';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 // Definições de tipos (você pode movê-las para um arquivo types.ts separado)
 interface Notification { id: number; type: 'alert' | 'info' | 'emergency'; message: string; time: string; }
-interface RiskArea { name: string; risk: 'alto' | 'médio'; incidents: number; latitude: number; longitude: number; }
+interface RiskArea { name: string; risk: 'alto' | 'médio'; incidents: number; }
 
 const UFRSecurityApp = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -35,20 +34,12 @@ const UFRSecurityApp = () => {
     { id: 2, type: 'info', message: 'Manutenção da iluminação no estacionamento concluída', time: '1 dia atrás' }
   ]);
 
-  // Coordenadas do campus UFR
-  const campusCenter = {
-    latitude: -16.465762176133936,
-    longitude: -54.579379280325995,
-    latitudeDelta: 0.01,
-    longitudeDelta: 0.01,
-  };
-
   const riskAreas: RiskArea[] = [
-    { name: 'Estacionamento', risk: 'alto', incidents: 5, latitude: -16.466200, longitude: -54.579800 },
-    { name: 'Bloco A - Saída Lateral', risk: 'alto', incidents: 3, latitude: -16.465106393548908, longitude: -54.57806331367457 },
-    { name: 'Centro de Vivências', risk: 'médio', incidents: 2, latitude: -16.462710732805537, longitude: -54.57837747852901 },
-    { name: 'Área do NEATI', risk: 'médio', incidents: 2, latitude: -16.463595792194788, longitude: -54.57844694669665 },
-    { name: 'Blocos E e F', risk: 'médio', incidents: 1, latitude: -16.46679100272079, longitude: -54.57910270215579 }
+    { name: 'Estacionamento', risk: 'alto', incidents: 5 },
+    { name: 'Bloco A - Saída Lateral', risk: 'alto', incidents: 3 },
+    { name: 'Centro de Vivências', risk: 'médio', incidents: 2 },
+    { name: 'Área do NEATI', risk: 'médio', incidents: 2 },
+    { name: 'Blocos E e F', risk: 'médio', incidents: 1 }
   ];
 
   // Callback para quando o login for bem-sucedido na LoginScreen
@@ -151,69 +142,53 @@ const UFRSecurityApp = () => {
   );
 
   const MapTab = () => (
-    <View style={styles.container}>
-      <View style={styles.mapHeader}>
-        <Text style={styles.mapTitle}>Mapa de Áreas de Risco</Text>
+    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+      <Text style={styles.sectionTitle}>Mapa de Áreas de Risco</Text>
+
+      {/* Mapa Simulado */}
+      <View style={styles.mapContainer}>
+        <Text style={styles.mapIcon}>🗺️</Text>
+        <Text style={styles.mapText}>Campus UFR - Vista Geral</Text>
+
+        {/* Pontos de Risco Simulados */}
+        <View style={[styles.riskPoint, { top: 20, left: 20, backgroundColor: '#EF4444' }]} />
+        <View style={[styles.riskPoint, { top: 40, right: 30, backgroundColor: '#F59E0B' }]} />
+        <View style={[styles.riskPoint, { bottom: 20, left: 40, backgroundColor: '#EF4444' }]} />
+        <View style={[styles.riskPoint, { bottom: 30, right: 20, backgroundColor: '#F59E0B' }]} />
       </View>
 
-      {/* Google Maps */}
-      <MapView
-        provider={PROVIDER_GOOGLE}
-        style={styles.map}
-        initialRegion={campusCenter}
-        showsUserLocation={true}
-        showsMyLocationButton={true}
-        toolbarEnabled={false}
-      >
-        {/* Marcadores das áreas de risco */}
-        {riskAreas.map((area, index) => (
-          <Marker
-            key={index}
-            coordinate={{
-              latitude: area.latitude,
-              longitude: area.longitude,
-            }}
-            title={area.name}
-            description={`${area.incidents} incident${area.incidents !== 1 ? 'es' : 'e'} - Risco ${area.risk}`}
-            pinColor={area.risk === 'alto' ? '#EF4444' : '#F59E0B'}
-          />
-        ))}
-      </MapView>
-
       {/* Lista de Áreas */}
-      <ScrollView style={styles.areasList} contentContainerStyle={styles.areasListContent}>
-        <Text style={styles.subsectionTitle}>Áreas Monitoradas</Text>
-        {riskAreas.map((area, index) => (
-          <View key={index} style={styles.areaItem}>
-            <View style={styles.areaHeader}>
-              <View style={styles.areaInfo}>
-                <View style={[
-                  styles.riskIndicator,
-                  { backgroundColor: area.risk === 'alto' ? '#EF4444' : '#F59E0B' }
-                ]} />
-                <View>
-                  <Text style={styles.areaName}>{area.name}</Text>
-                  <Text style={styles.areaIncidents}>
-                    {area.incidents} incident{area.incidents !== 1 ? 'es' : 'e'} reportado{area.incidents !== 1 ? 's' : ''}
-                  </Text>
-                </View>
-              </View>
+      <Text style={styles.subsectionTitle}>Áreas Monitoradas</Text>
+      {riskAreas.map((area, index) => (
+        <View key={index} style={styles.areaItem}>
+          <View style={styles.areaHeader}>
+            <View style={styles.areaInfo}>
               <View style={[
-                styles.riskBadge,
-                { backgroundColor: area.risk === 'alto' ? '#FEF2F2' : '#FFFBEB' }
-              ]}>
-                <Text style={[
-                  styles.riskBadgeText,
-                  { color: area.risk === 'alto' ? '#991B1B' : '#92400E' }
-                ]}>
-                  {area.risk.toUpperCase()}
+                styles.riskIndicator,
+                { backgroundColor: area.risk === 'alto' ? '#EF4444' : '#F59E0B' }
+              ]} />
+              <View>
+                <Text style={styles.areaName}>{area.name}</Text>
+                <Text style={styles.areaIncidents}>
+                  {area.incidents} incident{area.incidents !== 1 ? 'es' : 'e'} reportado{area.incidents !== 1 ? 's' : ''}
                 </Text>
               </View>
             </View>
+            <View style={[
+              styles.riskBadge,
+              { backgroundColor: area.risk === 'alto' ? '#FEF2F2' : '#FFFBEB' }
+            ]}>
+              <Text style={[
+                styles.riskBadgeText,
+                { color: area.risk === 'alto' ? '#991B1B' : '#92400E' }
+              ]}>
+                {area.risk.toUpperCase()}
+              </Text>
+            </View>
           </View>
-        ))}
-      </ScrollView>
-    </View>
+        </View>
+      ))}
+    </ScrollView>
   );
 
   const NotificationsTab = () => (
@@ -375,6 +350,17 @@ const UFRSecurityApp = () => {
 };
 
 const styles = StyleSheet.create({
+  // Estilos do LoginScreen DEVE ser removido daqui ou importado se desejar ter styles em um arquivo separado
+  // Como o LoginScreen é um componente separado, ele deve gerenciar seus próprios estilos.
+  // REMOVA OS ESTILOS DO LOGINSCREEN DAQUI:
+  /*
+  loginContainer: { ... },
+  loginKeyboardView: { ... },
+  ...
+  helpLinkText: { ... },
+  */
+
+  // Estilos existentes do app (mantidos aqui)
   safeArea: {
     flex: 1,
     backgroundColor: '#F9FAFB',
@@ -553,29 +539,29 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 24,
   },
-  // Novos estilos para o mapa
-  mapHeader: {
-    paddingHorizontal: 24,
-    paddingTop: 24,
-    paddingBottom: 16,
-    backgroundColor: '#F9FAFB',
-  },
-  mapTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1F2937',
-  },
-  map: {
-    height: height * 0.4, // 40% da altura da tela
-    margin: 16,
+  mapContainer: {
+    backgroundColor: '#DCFCE7',
+    marginHorizontal: 24,
     borderRadius: 12,
+    padding: 24,
+    alignItems: 'center',
+    marginBottom: 24,
+    position: 'relative',
+    minHeight: 150,
   },
-  areasList: {
-    flex: 1,
-    backgroundColor: '#F9FAFB',
+  mapIcon: {
+    fontSize: 48,
+    marginBottom: 8,
   },
-  areasListContent: {
-    paddingBottom: 20,
+  mapText: {
+    fontSize: 16,
+    color: '#6B7280',
+  },
+  riskPoint: {
+    position: 'absolute',
+    width: 16,
+    height: 16,
+    borderRadius: 8,
   },
   subsectionTitle: {
     fontSize: 18,
@@ -758,6 +744,13 @@ const styles = StyleSheet.create({
     color: '#3B82F6',
     fontWeight: '600',
   },
+  // REMOVA ESTES ESTILOS DE CHAT TAMBÉM, pois eles agora pertencem ao ChatModal.tsx
+  /*
+  chatContainer: { ... },
+  chatHeader: { ... },
+  ...
+  chatSendText: { ... },
+  */
 });
 
 export default UFRSecurityApp;
