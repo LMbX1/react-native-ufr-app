@@ -9,14 +9,23 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "config": {
+        "googleMapsApiKey": "AIzaSyAWtWfz6Wibb27dTk1RF-wY_uDiaU9isT8"
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyAWtWfz6Wibb27dTk1RF-wY_uDiaU9isT8"
+        }
+      },
+      "edgeToEdgeEnabled": true,
+      "package": "com.lucasmelo1337.myapp"
     },
     "web": {
       "bundler": "metro",
@@ -37,6 +46,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "03753027-bb3c-456c-b82d-7f7ff62d1f9f"
+      }
     }
   }
 }
