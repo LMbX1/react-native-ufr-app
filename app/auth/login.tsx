@@ -1,18 +1,18 @@
 // my-app/app/auth/login.tsx
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  TextInput,
-  Image,
-  SafeAreaView,
-  StatusBar,
   Alert,
+  Image,
   KeyboardAvoidingView,
   Platform,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 // Você pode mover os estilos para um arquivo separado para melhor organização,
@@ -161,7 +161,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
 
     setTimeout(() => {
       setLoginLoading(false);
-      if (loginData.rga === '20241234' && loginData.password === '123456') {
+      if (loginData.rga === '20251234' && loginData.password === '123456') {
       //  Alert.alert('Sucesso', 'Login realizado com sucesso!');
         onLoginSuccess(); // Chama o callback para indicar sucesso
       } else {
@@ -233,7 +233,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
             {/* Informações de teste */}
             <View style={styles.testInfo}>
               <Text style={styles.testInfoTitle}>🔍 Para testar o app:</Text>
-              <Text style={styles.testInfoText}>RGA: 20241234</Text>
+              <Text style={styles.testInfoText}>RGA: 20251234</Text>
               <Text style={styles.testInfoText}>Senha: 123456</Text>
             </View>
           </View>
